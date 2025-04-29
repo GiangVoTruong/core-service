@@ -1,12 +1,14 @@
 import { NestFactory } from '@nestjs/core'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
+import { ValidationPipe } from '@nestjs/common'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { swaggerConfig, swaggerOpptions } from './common/config/swagger.config'
+import { ENVIRONMENT, PORT } from './common/config/app.config'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
-  // Cấu hình validation pipe
+  // Cấu hình Global Pipes
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -15,18 +17,20 @@ async function bootstrap() {
     }),
   )
 
-  // Cấu hình Swagger
-  const config = new DocumentBuilder()
-    .setTitle('NestJS API')
-    .setDescription('The NestJS API description')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build()
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api', app, document)
+  // Cấu hình CORS
+  app.enableCors()
 
-  await app.listen(process.env.PORT ?? 3000)
-  console.log(`Application is running on: http://localhost:${process.env.PORT ?? 3000}`)
-  console.log(`Swagger UI is available at: http://localhost:${process.env.PORT ?? 3000}/api`)
+  // Cấu hình API prefix
+  app.setGlobalPrefix('api')
+
+  // Cấu hình Swagger
+  const document = SwaggerModule.createDocument(app, swaggerConfig)
+  SwaggerModule.setup('swagger', app, document, swaggerOpptions)
+
+  // Khởi động server
+  await app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT} and environment ${ENVIRONMENT}`)
+  })
 }
+
 bootstrap()
