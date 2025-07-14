@@ -6,8 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Users } from '@/entities/user.entity'
 import { Repository } from 'typeorm'
 
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @ApiTags('User')
 @Controller('users')
 export class UsersController {
@@ -18,11 +18,9 @@ export class UsersController {
 
   @Get()
   async getAllUser() {
-    return this.usersRepository.find()
+    const users = await this.usersRepository.find({
+      select: ['username'],
+    })
+    return users
   }
-
-  // @Patch(':id')
-  // async updateUser(@Param('id') id: string) {
-  //   return this.usersRepository.update({ id }, {})
-  // }
 }
